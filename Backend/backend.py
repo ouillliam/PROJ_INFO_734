@@ -8,7 +8,6 @@ def create_app():
 app = create_app()
 mongo = db.config_db(app, "myDatabase")
 
-
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+# @app.route("/")
+# def hello_world():
+#     return "<p>Hello, World!</p>"
