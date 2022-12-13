@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import './login.css';
+import '../../styles/login.css';
 import md5 from 'md5';
+import Session from 'react-session-api'
+import  { useNavigate } from 'react-router-dom'
 
 function Login() {
 
@@ -9,6 +11,41 @@ function Login() {
     const [password, setPassword] = useState("");
     const [accountCreationSuccess, setAccountCreationSuccess] = useState([false,""])
     const [accountCreationError, setAccountCreationError] = useState("")
+
+    const navigate = useNavigate()
+    const handleSignIn = async (event) => {
+      event.preventDefault();
+
+      if(username === undefined || username === null || username === "" 
+        || password=== undefined || password === null || password === "" ){
+          setAccountCreationSuccess((false, ''));
+          setAccountCreationError("fill in every field")
+          return
+      }
+
+      const responseUserLogin = await fetch('/api/user/login', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({'username': username, 'password': md5(password)})
+      })
+
+      const res = await responseUserLogin.json();
+
+      if (responseUserLogin.ok){
+        Session.set("user", res.body)
+        sessionStorage.setItem('user', res.body)
+        navigate("/home")
+      }
+      else{
+       setAccountCreationSuccess([false, ""])
+       setAccountCreationError(res.body)
+      }
+    }
+
+    
 
     const handleSignUp = async (event) => {
       event.preventDefault();
@@ -31,7 +68,6 @@ function Login() {
       
       const res = await responseAccountCreation.json();
 
-      alert(res.body)
 
       if (responseAccountCreation.ok){
         setAccountCreationSuccess([true, res.body])
@@ -58,7 +94,7 @@ function Login() {
             <input type="password" value={password} onChange={e => setPassword(e.target.value)}/>
           </label>
           <div className="align-self-start">
-            <button type="submit" className='mt-3 btn btn-primary '>Sign in</button>
+            <button type="submit"  onClick={handleSignIn} className='mt-3 btn btn-primary '>Sign in</button>
           </div>
           <div onClick={handleSignUp} className="align-self-start">
             <p className='mt-3 button-sign-up'>No account ? Sign up 👈🏻</p>

@@ -23,4 +23,13 @@ def create_user(mongo, username, password):
     else:
         return False
 
+def find_user(mongo, username, password):
+
+    userRepository = UserRepository(mongo.db)
+
+    user = userRepository.find_one_by({'login' : username, 'password' : password})
+    if user == None:
+        return False
+    else: 
+        return user
 

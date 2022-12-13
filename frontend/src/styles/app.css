@@ -1,0 +1,14 @@
+.app{
+    display: grid;
+    grid-template-columns: 200px auto;
+    height: 100vh;
+}
+
+.sidebar{
+    grid-column: 1;
+    background-color: red;
+}
+
+.main{
+    grid-column: 2;
+}

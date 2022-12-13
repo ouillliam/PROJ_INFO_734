@@ -32,3 +32,26 @@ def api_user():
             mimetype='application/json'
         )
         return response
+
+@app.route("/api/user/login", methods = ['POST'])
+def api_user_login():
+    data = request.get_json()
+
+    user = db.find_user(mongo, data['username'], data['password'])
+
+    if user:
+        response = app.response_class(
+                response=json.dumps({'body' : user.login}),
+                status=200,
+                mimetype='application/json'
+            )
+        return response
+
+    else:
+        error = {'body' : 'Invalid credentials'}
+        response = app.response_class(
+            response=json.dumps(error),
+            status=400,
+            mimetype='application/json'
+        )
+        return response
