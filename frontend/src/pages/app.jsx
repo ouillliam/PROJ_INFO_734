@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Session from 'react-session-api'
 import  { Navigate } from 'react-router-dom'
 import '../styles/app.css'
-
+import ServerList from '../components/ServerList';
 
 function App() {
 
@@ -21,7 +21,9 @@ function App() {
         <div>
           <ProtectedComponent/>
           <div className='app'>
-            <div className='sidebar'></div>
+            <div className='sidebar'>
+              <ServerList/>
+            </div>
             <div className='main'></div>
           </div>
         </div>
