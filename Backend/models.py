@@ -21,7 +21,7 @@ class UserRepository(AbstractRepository[User]):
 
 class Message(BaseModel):
     from_user: ObjectIdField
-    sent: datetime.datetime = datetime.datetime.now()
+    sent_at: datetime.datetime = datetime.datetime.now()
     content:str
 
     class Config:
@@ -38,15 +38,16 @@ class Member(BaseModel):
         return v
 
 class Channel(BaseModel):
+    name : str
     messages : list[Message] = None
 
 class Server(BaseModel):
     id: ObjectIdField = None
     name : str
     members : list[Member]
-    channels : list[Channel] = [Channel()]
+    channels : list[Channel] 
 
-class ServerRepository(AbstractRepository[User]):
+class ServerRepository(AbstractRepository[Server]):
     class Meta:
         collection_name = 'servers'
 
