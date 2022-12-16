@@ -1,5 +1,5 @@
 from flask_pymongo import PyMongo
-from models import User, UserRepository, ServerRepository, Server, Member, Channel
+from models import User, UserRepository, ServerRepository, Server, Member, Channel 
 
 def config_db(app, db_name):
     app.config["MONGO_URI"] = f"mongodb://localhost:27017/{db_name}"
@@ -69,5 +69,9 @@ def get_servers_of_user(mongo, user):
     serverRepository = ServerRepository(mongo.db)
     userRepository = UserRepository(mongo.db)
     user_id = userRepository.find_one_by({'login' : user}).id 
-    print(list(serverRepository.find_by({ 'members' : {'user' : user_id} })))
     return serverRepository.find_by({ 'members.user' : {'$eq' : user_id} })
+
+def get_server(mongo, server_name):
+    serverRepository = ServerRepository(mongo.db)
+    server = serverRepository.find_one_by({'name' : server_name})
+    return server

@@ -47,6 +47,10 @@ class Server(BaseModel):
     members : list[Member]
     channels : list[Channel] 
 
+    class Config:
+        # The ObjectIdField creates an bson ObjectId value, so its necessary to setup the json encoding
+        json_encoders = {ObjectId: str}
+
 class ServerRepository(AbstractRepository[Server]):
     class Meta:
         collection_name = 'servers'

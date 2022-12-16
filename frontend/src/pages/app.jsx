@@ -4,6 +4,7 @@ import Session from 'react-session-api'
 import  { Navigate } from 'react-router-dom'
 import '../styles/app.css'
 import ServerList from '../components/ServerList';
+import ServerView from '../components/ServerView';
 
 function App() {
 
@@ -30,7 +31,9 @@ function App() {
             <div className='sidebar'>
               <ServerList activeServer = {activeServer} handleServerClick={handleServerClick}/>
             </div>
-            <div className='main'></div>
+            <div className='main'>
+              <ServerView activeServer = {activeServer}/>
+            </div>
           </div>
         </div>
     )

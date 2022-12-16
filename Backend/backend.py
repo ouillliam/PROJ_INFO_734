@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request
 import json
 import db   
+import dictfier
 
 def create_app():
     app = Flask(__name__)
@@ -82,20 +83,78 @@ def crud_server():
 
     elif request.method == "GET" :
         user = request.args.get('user')
-        servers = db.get_servers_of_user(mongo, user)
-        if servers:
-            servers = [server.name for server in servers]
-            response = app.response_class(
-                    response=json.dumps({'body' : servers}),
-                    status=200,
+        server_name = request.args.get('server_name')
+
+        if user:
+            servers = db.get_servers_of_user(mongo, user)
+            if servers:
+                servers = [server.name for server in servers]
+                response = app.response_class(
+                        response=json.dumps({'body' : servers}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+                return response
+            else:
+                error = {'body' : 'Error getting servers'}
+                response = app.response_class(
+                    response=json.dumps(error),
+                    status=400,
                     mimetype='application/json'
                 )
-            return response
-        else:
-            error = {'body' : 'Error getting servers'}
-            response = app.response_class(
-                response=json.dumps(error),
-                status=400,
-                mimetype='application/json'
-            )
-            return response
+                return response
+        elif server_name:
+            server = db.get_server(mongo, server_name)
+            if server:
+                
+                query = [
+                    {
+                        "id" : dictfier.useobj(lambda obj : str(obj.id))
+                    },
+                    "name", 
+                    {
+                        "members" : [
+                            [
+                                {
+                                    "user" : dictfier.useobj(lambda obj : str(obj.user))
+                                },
+                                "role"
+                            ]
+                        ]
+                    },
+                    {
+                        "channels" : [
+                            [
+                                "name",
+                                {
+                                    "messages" : [
+                                        [
+                                            {"from_user" : dictfier.useobj(lambda obj : str(obj.from_user))},
+                                            "sent_at",
+                                            "content"
+                                        ]
+                                    ]
+                                }
+                            ]
+                        ]
+                    }
+                ]
+
+                server_data = dictfier.dictfy(server, query)
+
+                response = app.response_class(
+                        response=json.dumps({'body' : json.dumps(server_data)}),
+                        status=200,
+                        mimetype='application/json'
+                    )
+                return response
+            else:
+                error = {'body' : 'Error getting server'}
+                response = app.response_class(
+                    response=json.dumps(error),
+                    status=400,
+                    mimetype='application/json'
+                )
+                return response
+
+        
