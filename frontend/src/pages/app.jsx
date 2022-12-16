@@ -7,9 +7,15 @@ import ServerList from '../components/ServerList';
 
 function App() {
 
+    const [activeServer, setActiveServer] = useState(null)
+
+    const handleServerClick = (server) => {
+      setActiveServer(server)
+    }
+
     const ProtectedComponent = () => {
 
-        if (sessionStorage.getItem("user") != "test")
+        if (sessionStorage.getItem("user") === "" || sessionStorage.getItem("user") === null || sessionStorage.getItem("user") === undefined )
           return <Navigate replace to='/' />
 
         return
@@ -22,7 +28,7 @@ function App() {
           <ProtectedComponent/>
           <div className='app'>
             <div className='sidebar'>
-              <ServerList/>
+              <ServerList activeServer = {activeServer} handleServerClick={handleServerClick}/>
             </div>
             <div className='main'></div>
           </div>

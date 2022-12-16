@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Session from 'react-session-api'
 
 
-function ServerList(){
+function ServerList(props){
     const [servers, setServers] = useState([])
     const [serverName, setServerName] = useState("")
 
@@ -19,7 +19,7 @@ function ServerList(){
 
     const getServers = async () => {
 
-        const responseServers = await fetch('/api/server', {
+        const responseServers = await fetch('/api/server?user=' + sessionStorage.getItem("user"), {
             method: 'GET',
             headers: {
             'Accept': 'application/json',
@@ -43,7 +43,7 @@ function ServerList(){
     const handleServerCreation = async (event) => {
         event.preventDefault()
 
-        if( serverName === null || serverName === "" ){
+        if( serverName === null || serverName === "" || serverName === undefined){
             return
         }
 
@@ -68,19 +68,29 @@ function ServerList(){
 
     }
 
+    const renderServerItems = () => {
+      return servers.map( (server) => {
+        if(server == props.activeServer){
+          return <li className='active' onClick={() => props.handleServerClick(server)}>{server}</li>
+        }
+        else{
+          return <li onClick={() => props.handleServerClick(server)}>{server}</li>
+        }
+      })
+    }
+
+
     return (
         <div>
-            <form className='d-flex flex-column align-items-center ps-2 pe-2'>
+            <form className='d-flex flex-column align-items-center '>
             <label>
                 <p>Server Name</p>
-                <input type="text" value={serverName} onChange={e => setServerName(e.target.value)}/>
+                <input className='w-100' type="text" value={serverName} onChange={e => setServerName(e.target.value)}/>
             </label>
-            <button type="submit" onClick={handleServerCreation} className='btn btn-primary w-100'>Create Server</button>
+            <button type="submit" onClick={handleServerCreation} className='btn btn-primary w-100'>+ Create Server</button>
             </form>
             <ul>
-                {servers.map((server) =>
-                <li>{server}</li>
-                )}
+                {renderServerItems()}
             </ul>
         
         </div>

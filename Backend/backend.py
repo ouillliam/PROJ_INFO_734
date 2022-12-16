@@ -81,7 +81,8 @@ def crud_server():
             return response
 
     elif request.method == "GET" :
-        servers = db.get_servers(mongo)
+        user = request.args.get('user')
+        servers = db.get_servers_of_user(mongo, user)
         if servers:
             servers = [server.name for server in servers]
             response = app.response_class(

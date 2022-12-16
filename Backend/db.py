@@ -65,6 +65,9 @@ def create_server(mongo, server_name, admin):
     else:
         return False
 
-def get_servers(mongo):
+def get_servers_of_user(mongo, user):
     serverRepository = ServerRepository(mongo.db)
-    return serverRepository.find_by({})
+    userRepository = UserRepository(mongo.db)
+    user_id = userRepository.find_one_by({'login' : user}).id 
+    print(list(serverRepository.find_by({ 'members' : {'user' : user_id} })))
+    return serverRepository.find_by({ 'members.user' : {'$eq' : user_id} })
