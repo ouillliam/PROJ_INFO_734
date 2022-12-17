@@ -43,6 +43,7 @@ function ServerList(props){
     const handleServerCreation = async (event) => {
         event.preventDefault()
 
+
         if( serverName === null || serverName === "" || serverName === undefined){
             return
         }

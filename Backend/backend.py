@@ -3,6 +3,9 @@ from flask import request
 import json
 import db   
 import dictfier
+from flask_socketio import SocketIO, send, emit
+
+
 
 def create_app():
     app = Flask(__name__)
@@ -10,6 +13,55 @@ def create_app():
 
 app = create_app()
 mongo = db.config_db(app, "myDatabase")
+
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+
+
+def server_to_json(server):
+    query = [
+                    {
+                        "id" : dictfier.useobj(lambda obj : str(obj.id))
+                    },
+                    "name", 
+                    {
+                        "members" : [
+                            [
+                                {
+                                    "user" : dictfier.useobj(lambda obj : str(obj.user))
+                                },
+                                "role"
+                            ]
+                        ]
+                    },
+                    {
+                        "channels" : [
+                            [
+                                "name",
+                                {
+                                    "messages" : [
+                                        [
+                                            {"from_user" : dictfier.useobj(lambda obj : str(obj.from_user))},
+                                            "sent_at",
+                                            "content"
+                                        ]
+                                    ]
+                                }
+                            ]
+                        ]
+                    }
+                ]
+
+    server_data = dictfier.dictfy(server, query)
+
+    return server_data
+
+
+@socketio.on('connect')
+def test_connect(auth):
+    print("cc")
+
+
 
 @app.route("/api/user", methods = ['POST'])
 def api_user():
@@ -57,7 +109,7 @@ def api_user_login():
         )
         return response
 
-@app.route("/api/server", methods = ["POST", "GET"])
+@app.route("/api/server", methods = ["POST", "GET", "PUT"])
 def crud_server():
     if request.method == "POST" :
         data = request.get_json()
@@ -80,6 +132,32 @@ def crud_server():
                 mimetype='application/json'
             )
             return response
+    
+    elif request.method == "PUT" :
+
+        data = request.get_json()
+
+        server = db.update_server(mongo, data["server_name"], data["new_channel"])
+        print(f"bfyuegfseu : {server}")
+
+        if server:
+            server_data = server_to_json(server)
+            response = app.response_class(
+                    response=json.dumps(server_data),
+                    status=200,
+                    mimetype='application/json'
+                )
+            return response
+
+        else:
+            error = {'body' : 'Error updating server'}
+            response = app.response_class(
+                response=json.dumps(error),
+                status=400,
+                mimetype='application/json'
+            )
+            return response
+        
 
     elif request.method == "GET" :
         user = request.args.get('user')
@@ -107,40 +185,7 @@ def crud_server():
             server = db.get_server(mongo, server_name)
             if server:
                 
-                query = [
-                    {
-                        "id" : dictfier.useobj(lambda obj : str(obj.id))
-                    },
-                    "name", 
-                    {
-                        "members" : [
-                            [
-                                {
-                                    "user" : dictfier.useobj(lambda obj : str(obj.user))
-                                },
-                                "role"
-                            ]
-                        ]
-                    },
-                    {
-                        "channels" : [
-                            [
-                                "name",
-                                {
-                                    "messages" : [
-                                        [
-                                            {"from_user" : dictfier.useobj(lambda obj : str(obj.from_user))},
-                                            "sent_at",
-                                            "content"
-                                        ]
-                                    ]
-                                }
-                            ]
-                        ]
-                    }
-                ]
-
-                server_data = dictfier.dictfy(server, query)
+                server_data = server_to_json(server)
 
                 response = app.response_class(
                         response=json.dumps({'body' : json.dumps(server_data)}),
@@ -158,3 +203,7 @@ def crud_server():
                 return response
 
         
+
+
+if __name__ == '__main__':
+    socketio.run(app)

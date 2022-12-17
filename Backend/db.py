@@ -75,3 +75,16 @@ def get_server(mongo, server_name):
     serverRepository = ServerRepository(mongo.db)
     server = serverRepository.find_one_by({'name' : server_name})
     return server
+
+def update_server(mongo, server_name, channel):
+    serverRepository = ServerRepository(mongo.db)
+    server = serverRepository.find_one_by({'name' : server_name})
+
+    server.channels.append(Channel(**{
+        'name' : channel,
+        'messages' : []
+    }))
+
+    serverRepository.save(server)
+
+    return server
