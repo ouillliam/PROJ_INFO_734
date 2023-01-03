@@ -14,6 +14,10 @@ function ServerList(props){
             setServers(data)
         } 
         fetchServers()
+
+        props.socket.on('server_joined', (data) => {
+          fetchServers()
+        })
        }
     , [])
 

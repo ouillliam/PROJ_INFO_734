@@ -5,7 +5,9 @@ import  { Navigate } from 'react-router-dom'
 import '../styles/app.css'
 import ServerList from '../components/ServerList';
 import ServerView from '../components/ServerView';
-import io from 'socket.io-client';
+import { SocketContext, socket } from '../context/socket';
+import { useContext } from 'react';
+
 
 function App() {
 
@@ -27,31 +29,28 @@ function App() {
     useEffect( () => {
       if(sessionStorage.getItem("user") === "" || sessionStorage.getItem("user") === null || sessionStorage.getItem("user") === undefined ) return
       
-      const socket = io("http://127.0.0.1:5000")
+      alert("ouihougou")
+      socket.emit('register_user', socket.id, sessionStorage.getItem("user"))
 
-      socket.on("connect", () => {
-        alert("connected")
-      })
-  
     }, [])
 
-    
-    
 
     return(
 
+      <SocketContext.Provider value={socket}>
         <div>
           <ProtectedComponent/>
           <div className='app'>
             <div className='sidebar'>
               <div className='username'>{sessionStorage.getItem("user")}</div>
-              <ServerList activeServer = {activeServer} handleServerClick={handleServerClick}/>
+              <ServerList activeServer = {activeServer} handleServerClick={handleServerClick} socket={socket}/>
             </div>
             <div className='main'>
-              <ServerView activeServer = {activeServer}/>
+              <ServerView activeServer = {activeServer} socket = {socket}/>
             </div>
           </div>
         </div>
+        </SocketContext.Provider>
     )
 }
 

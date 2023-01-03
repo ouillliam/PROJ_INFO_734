@@ -21,14 +21,14 @@ class UserRepository(AbstractRepository[User]):
 
 class Message(BaseModel):
     from_user: ObjectIdField
-    sent_at: datetime.datetime = datetime.datetime.now()
+    sent_at: str = "{:%X %x}".format(datetime.datetime.now())
     content:str
 
     class Config:
         json_encoders = {ObjectId: str}
 
 class Member(BaseModel):
-    user : ObjectIdField
+    user : User
     role : str
 
     @validator('role')
