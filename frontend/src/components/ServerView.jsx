@@ -22,7 +22,6 @@ function ServerView({activeServer, socket}){
     useEffect( () => {
         socket.on('user_joined_server', (data) => {
             if ( activeServer == data.server ){
-                alert("wesh")
                 const lastChannel = activeChannel
                 fetchServerData()
                 setActiveChannel(lastChannel)

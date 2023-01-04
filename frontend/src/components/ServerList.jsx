@@ -20,7 +20,6 @@ function ServerList(props){
         fetchServers()
 
         props.socket.on('server_joined', (data) => {
-          alert(data.username + " rejoint " + data.server)
           fetchServers()
         })
 
