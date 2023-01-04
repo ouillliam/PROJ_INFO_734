@@ -7,17 +7,23 @@ function ServerList(props){
     const [servers, setServers] = useState([])
     const [serverName, setServerName] = useState("")
 
+    async function fetchServers() {
+      const data = await getServers()
+      setServers(data)
+    } 
+
+
+
     useEffect(() =>
        {
-        async function fetchServers() {
-            const data = await getServers()
-            setServers(data)
-        } 
+        
         fetchServers()
 
         props.socket.on('server_joined', (data) => {
+          alert(data.username + " rejoint " + data.server)
           fetchServers()
         })
+
        }
     , [])
 
@@ -64,6 +70,7 @@ function ServerList(props){
       const res = await responseServerCreation.json();
 
       if (responseServerCreation.ok){
+        props.socket.emit("add_member", sessionStorage.getItem("user"), serverName )
         const data = await getServers()
         setServers(data)
       }

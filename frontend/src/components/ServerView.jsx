@@ -9,16 +9,31 @@ function ServerView({activeServer, socket}){
     const [newChannel, setNewChannel] = useState()
     const [newMember, setNewMember] = useState()
     const [newMessage, setNewMessage] = useState()
+    
+
+    const fetchServerData = async () => {
+        if (activeServer === null ) return
+        const serverData = await getServerData()
+        setServer(serverData)
+        setActiveChannel(null)
+        setNewChannel("")
+    }
 
     useEffect( () => {
-        const fetchServerData = async () => {
-            if (activeServer === null ) return
-            const serverData = await getServerData()
-            setServer(serverData)
-            setActiveChannel(null)
-            setNewChannel("")
-        }
+        socket.on('user_joined_server', (data) => {
+            if ( activeServer == data.server ){
+                alert("wesh")
+                const lastChannel = activeChannel
+                fetchServerData()
+                setActiveChannel(lastChannel)
+            }
+        })
+    }, [])
+
+    useEffect( () => {
         fetchServerData()
+
+
     }, [activeServer])
 
     const getServerData = async () => {

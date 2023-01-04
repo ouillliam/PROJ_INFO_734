@@ -5,13 +5,16 @@ import  { Navigate } from 'react-router-dom'
 import '../styles/app.css'
 import ServerList from '../components/ServerList';
 import ServerView from '../components/ServerView';
-import { SocketContext, socket } from '../context/socket';
-import { useContext } from 'react';
+import io from 'socket.io-client';
+// import { SocketContext, socket } from '../context/socket';
 
+
+const socket = io("http://127.0.0.1:5000")
 
 function App() {
 
     const [activeServer, setActiveServer] = useState(null)
+
 
     const handleServerClick = (server) => {
       setActiveServer(server)
@@ -29,15 +32,19 @@ function App() {
     useEffect( () => {
       if(sessionStorage.getItem("user") === "" || sessionStorage.getItem("user") === null || sessionStorage.getItem("user") === undefined ) return
       
-      alert("ouihougou")
+
+
+      
       socket.emit('register_user', socket.id, sessionStorage.getItem("user"))
+
 
     }, [])
 
 
-    return(
 
-      <SocketContext.Provider value={socket}>
+
+
+    return(
         <div>
           <ProtectedComponent/>
           <div className='app'>
@@ -50,7 +57,6 @@ function App() {
             </div>
           </div>
         </div>
-        </SocketContext.Provider>
     )
 }
 

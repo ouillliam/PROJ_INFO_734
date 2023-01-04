@@ -82,23 +82,43 @@ def disconnect(sid):
 
 @socketio.on('register_user')
 def register_user(sid, username):
-    print("OUAOUAOUAOAUOA")
+    print("REGISTERING " + username)
     socketio.server.save_session(sid, {'username' : username})
     servers = db.get_servers_of_user(mongo, username)
     for server in servers:
+        print(username + " se connecte a " + server.name)
         socketio.server.enter_room(sid, server.name)
-    print(socketio.server.rooms(sid))
     print(f"{sid} {socketio.server.get_session(sid)}")
+    print("TOUTES LES ROOMS")
+    print(socketio.server.manager.rooms)
     
 @socketio.on('add_member')
 def add_member(member, server):
     print("JESSAIE D AJOYTER" + str(member))
+    conn = None
     for connection in connections:
-        username = socketio.server.get_session(connection)["username"]
+        username = ""
+        
+        try:
+            username = socketio.server.get_session(connection)["username"]
+        except:
+            pass
+
         if username == member:
+            print("VOILA LA SESSION DE " + member)
+            print(socketio.server.get_session(connection))
             socketio.server.enter_room(connection, server)
-            print(socketio.server.rooms())
-            socketio.emit("server_joined", {"server" : server}, room = server)
+            print(username + " rejoint " + server)
+            socketio.emit("server_joined", {"server" : server, "username" : member}, to = connection)
+            conn = connection
+    
+    print("JESSAY D EMIT SERVER "+ server + " JOINED " + member )
+    if conn:
+        socketio.emit("user_joined_server", {"server" : server, "username" : member}, to = server, skip_sid = conn )
+    else:
+        socketio.emit("user_joined_server", {"server" : server, "username" : member}, to = server)
+        
+
 
 
 
