@@ -20,15 +20,15 @@ class UserRepository(AbstractRepository[User]):
         collection_name = 'users'
 
 class Message(BaseModel):
-    from_user: ObjectIdField
-    sent_at: datetime.datetime = datetime.datetime.now()
+    from_user: User
+    sent_at: str = "{:%X %x}".format(datetime.datetime.now())
     content:str
 
     class Config:
         json_encoders = {ObjectId: str}
 
 class Member(BaseModel):
-    user : ObjectIdField
+    user : User
     role : str
 
     @validator('role')
@@ -46,6 +46,10 @@ class Server(BaseModel):
     name : str
     members : list[Member]
     channels : list[Channel] 
+
+    class Config:
+        # The ObjectIdField creates an bson ObjectId value, so its necessary to setup the json encoding
+        json_encoders = {ObjectId: str}
 
 class ServerRepository(AbstractRepository[Server]):
     class Meta:

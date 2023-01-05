@@ -1,5 +1,5 @@
 from flask_pymongo import PyMongo
-from models import User, UserRepository, ServerRepository, Server, Member, Channel
+from models import User, UserRepository, ServerRepository, Server, Member, Channel, Message
 
 def config_db(app, db_name):
     app.config["MONGO_URI"] = f"mongodb://localhost:27017/{db_name}"
@@ -44,7 +44,7 @@ def create_server(mongo, server_name, admin):
         return False
 
     member = Member(**{
-            'user' : user.id, 
+            'user' : user, 
             'role' : "admin"
         })
 
@@ -65,6 +65,61 @@ def create_server(mongo, server_name, admin):
     else:
         return False
 
-def get_servers(mongo):
+def get_servers_of_user(mongo, user_login):
     serverRepository = ServerRepository(mongo.db)
-    return serverRepository.find_by({})
+    userRepository = UserRepository(mongo.db)
+    user = userRepository.find_one_by({'login' : user_login})
+    return serverRepository.find_by({ 'members.user.id' : {'$eq' : user.id} })
+
+def get_server(mongo, server_name):
+    serverRepository = ServerRepository(mongo.db)
+    server = serverRepository.find_one_by({'name' : server_name})
+    return server
+
+def get_all_servers(mongo):
+    serverRepository = ServerRepository(mongo.db)
+    servers = serverRepository.find_by({})
+    return servers
+
+def update_server(mongo, server_name, channel, member, channel_to_update, new_message, from_user):
+    serverRepository = ServerRepository(mongo.db)
+    server = serverRepository.find_one_by({'name' : server_name})
+
+    if channel != "":
+        server.channels.append(Channel(**{
+            'name' : channel,
+            'messages' : []
+        }))
+    
+    if member != "":
+        userRepository = UserRepository(mongo.db)
+        user = userRepository.find_one_by({'login' : member})
+
+        if user :
+            server.members.append(
+                Member(**{
+                    'user' : user,
+                    'role' : 'user'
+                })
+            )
+
+    if channel_to_update != "":
+        userRepository = UserRepository(mongo.db)
+        user = userRepository.find_one_by({'login' : from_user})
+
+        if new_message:
+            message = Message(
+                **{
+                    'from_user' : user,
+                    'content' : new_message
+                }
+            )
+
+            for channel in server.channels:
+                if channel.name == channel_to_update:
+                    channel.messages.append(message)
+
+
+    serverRepository.save(server)
+
+    return server
