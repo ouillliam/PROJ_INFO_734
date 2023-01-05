@@ -5,6 +5,8 @@ import db
 import dictfier
 from flask_socketio import SocketIO, send, emit
 
+
+# Pour convertir un objet Server en json
 def server_to_json(server):
     query = [
                     {
@@ -54,34 +56,31 @@ def create_app():
     app = Flask(__name__)
     return app
 
+# Serveur flask
 app = create_app()
+
+# Config la ddb
 mongo = db.config_db(app, "myDatabase")
 
+# Serveur socket
 socketio = SocketIO(app, cors_allowed_origins="*", logger = False)
 
-def init_rooms():
-    socket_rooms = []
-    servers = db.get_all_servers(mongo)
-    for server in servers:
-        socket_rooms.append(server.id)
-    return socket_rooms
-
-
-socket_rooms = init_rooms()
-
+# Garder un trace des connections
 connections = set()
 
+# Ajouter la socket qui se connecte à la liste des connections
 @socketio.server.event
 def connect(sid, environ, auth):
     print("connection" , sid)
     connections.add(sid)
 
+# Supprimer la socket qui se deconnecte de la liste
 @socketio.server.event
 def disconnect(sid):
     print("disconnected" , sid)
     connections.remove(sid)
     
-
+# Associer une connexion socket au username correspondant
 @socketio.on('register_user')
 def register_user(sid, username):
     print("REGISTERING " + username)
@@ -94,10 +93,13 @@ def register_user(sid, username):
     print("TOUTES LES ROOMS")
     print(socketio.server.manager.rooms)
     
+# Ajouter le nouveau membre à la room correspondant au serveur
 @socketio.on('add_member')
 def add_member(member, server):
-    print("JESSAIE D AJOYTER" + str(member))
+
     conn = None
+
+    # Trouver la connection correspondante
     for connection in connections:
         username = ""
         
@@ -107,24 +109,24 @@ def add_member(member, server):
             pass
 
         if username == member:
-            print("VOILA LA SESSION DE " + member)
-            print(socketio.server.get_session(connection))
             socketio.server.enter_room(connection, server)
-            print(username + " rejoint " + server)
+            # Notifier au nouveau membre qu'il a été ajouté à un serveur
             socketio.emit("server_joined", {"server" : server, "username" : member}, to = connection)
             conn = connection
     
-    print("JESSAY D EMIT SERVER "+ server + " JOINED " + member )
+ 
+    # Notifier aux membres du serveur l'arrivée d'un nouveau membre
     if conn:
         socketio.emit("user_joined_server", {"server" : server_to_json(db.get_server(mongo, server)), "username" : member}, to = server, skip_sid = conn )
     else:
         socketio.emit("user_joined_server", {"server" : server_to_json(db.get_server(mongo, server)), "username" : member}, to = server)
-        
+
+# Notifier les membres d'un serveur d'un nouveau message 
 @socketio.on('message_sent')
 def handle_message_sent(server, channel):
-    print("NOUVEAU MESSAGE ===================")
     socketio.emit("new_message", {"server" : server, "channel" : channel}, to = server)
 
+# Envoyer aux membres le serveur mis a jour après un nouveau message
 @socketio.on('new_message_received')
 def handle_new_message_received(login, channel, server):
     for connection in connections:
@@ -137,14 +139,14 @@ def handle_new_message_received(login, channel, server):
         if username == login :
             socketio.emit('update_chat', {'channel' : channel,'server' : json.dumps(server_to_json(db.get_server(mongo, server)))} ,to = connection)
 
-
+# Notifier un nouveau channel avec le server mis a jour
 @socketio.on('channel_added')
 def handle_new_channel(server_name):
     server = db.get_server(mongo, server_name)
     socketio.emit('new_channel', {"server" : server_to_json(server)}, to = server_name)
 
 
-
+# Ajouter un utilisateur
 @app.route("/api/user", methods = ['POST'])
 def api_user():
     data = request.get_json()
@@ -168,6 +170,7 @@ def api_user():
         )
         return response
 
+# Connecter un utilisateur
 @app.route("/api/user/login", methods = ['POST'])
 def api_user_login():
     data = request.get_json()
@@ -191,8 +194,11 @@ def api_user_login():
         )
         return response
 
+# API Server
 @app.route("/api/server", methods = ["POST", "GET", "PUT"])
 def crud_server():
+
+    # Ajouter un serveur
     if request.method == "POST" :
         data = request.get_json()
 
@@ -215,6 +221,7 @@ def crud_server():
             )
             return response
     
+    # Mettre a jour un serveur
     elif request.method == "PUT" :
 
         data = request.get_json()
@@ -240,7 +247,7 @@ def crud_server():
             )
             return response
         
-
+    # Get un serveur
     elif request.method == "GET" :
         user = request.args.get('user')
         server_name = request.args.get('server_name')

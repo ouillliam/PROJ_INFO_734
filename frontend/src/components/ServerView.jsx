@@ -3,14 +3,18 @@ import { Socket } from 'socket.io-client';
 
 function ServerView({activeServer, socket}){
 
-
+    // Serveur cliqué
     const [server, setServer] = useState()
+    // Channel cliqué
     const [activeChannel, setActiveChannel] = useState(null)
+
+    // Variables pour les forms
     const [newChannel, setNewChannel] = useState()
     const [newMember, setNewMember] = useState()
     const [newMessage, setNewMessage] = useState()
     
 
+    // Fonction pour réucpérer les données du serveur cliqué
     const fetchServerData = async () => {
         if (activeServer === null ) return
         const serverData = await getServerData()
@@ -18,6 +22,8 @@ function ServerView({activeServer, socket}){
         setNewChannel("")
     }
 
+    // Setup le listener pour un nouveau message (J'ai galéré car j'utilise le state activeChannel dedans
+    // donc obligé de le re-register le listener a chaque changement)
     useEffect( () => {
         socket.off('new_message')
 
@@ -25,13 +31,18 @@ function ServerView({activeServer, socket}){
 
             if ( activeChannel && activeServer == data.server && activeChannel.name == data.channel ){
 
+                // Notifier le server qu'un nouveau message a été reçu. 
                 socket.emit("new_message_received", sessionStorage.getItem("user"), activeChannel.name, server.name)
             }
         })
 
     }, [activeChannel])
 
+
+    // Setup les autres listeners de la socket
     useEffect( () => {
+
+        // Pour refresh la view quand on user est ajouté à mon server ouvert
         socket.on('user_joined_server', (data) => {
 
             if ( activeServer == data.server.name ){
@@ -41,6 +52,7 @@ function ServerView({activeServer, socket}){
             }
         })
 
+        // Pour refresh la view quand un channel est ajouté à mon server ouvert
         socket.on('new_channel', (data) => {
             alert(activeServer + " " + data.server.name)
             if( activeServer == data.server.name)
@@ -50,6 +62,7 @@ function ServerView({activeServer, socket}){
             }
         })
 
+        // Pour refresh le chat
         socket.on('update_chat', (data) =>{
 
             const updatedServer = JSON.parse(data.server)
@@ -66,12 +79,14 @@ function ServerView({activeServer, socket}){
 
     }, [])
 
+    // Refresh la vue au changement de serveur
     useEffect( () => {
         fetchServerData()
         setActiveChannel(null)
 
     }, [activeServer])
 
+    // Appel api pour les données
     const getServerData = async () => {
 
         const responseServerData = await fetch('/api/server?server_name=' + activeServer, {

@@ -4,8 +4,12 @@ import Session from 'react-session-api'
 
 
 function ServerList(props){
+
     const [servers, setServers] = useState([])
     const [serverName, setServerName] = useState("")
+
+
+    // Fonction pour récupérer les serveurs 
 
     async function fetchServers() {
       const data = await getServers()
@@ -14,6 +18,7 @@ function ServerList(props){
 
 
 
+    // Setup les listner de la socket
     useEffect(() =>
        {
         
@@ -26,6 +31,7 @@ function ServerList(props){
        }
     , [])
 
+    // Appel à l'api pour récupérer les serveurs
     const getServers = async () => {
 
         const responseServers = await fetch('/api/server?user=' + sessionStorage.getItem("user"), {
@@ -49,6 +55,7 @@ function ServerList(props){
     }
 
 
+    // Appel d'API pour créer un serveur
     const handleServerCreation = async (event) => {
         event.preventDefault()
 
@@ -69,9 +76,16 @@ function ServerList(props){
       const res = await responseServerCreation.json();
 
       if (responseServerCreation.ok){
+
+        // Notifier le serveur socket de l'ajout d'un membre (ici l'admin est ajouté au serveur qu'il vient de créer)
         props.socket.emit("add_member", sessionStorage.getItem("user"), serverName )
+
         const data = await getServers()
+
+
+        // Changer le state pour re render le component
         setServers(data)
+
       }
       else{
         ;
@@ -79,6 +93,7 @@ function ServerList(props){
 
     }
 
+    // Afficher les serveurs
     const renderServerItems = () => {
       return servers.map( (server) => {
         if(server == props.activeServer){
