@@ -9,16 +9,22 @@ import io from 'socket.io-client';
 // import { SocketContext, socket } from '../context/socket';
 
 
+// Initialisation socket 
+
 const socket = io("http://127.0.0.1:5000")
 
 function App() {
 
+
+    // Serveur à afficher
     const [activeServer, setActiveServer] = useState(null)
 
 
     const handleServerClick = (server) => {
       setActiveServer(server)
     }
+
+    //Protection de l'application
 
     const ProtectedComponent = () => {
 
