@@ -41,6 +41,15 @@ function ServerView({activeServer, socket}){
             }
         })
 
+        socket.on('new_channel', (data) => {
+            alert(activeServer + " " + data.server.name)
+            if( activeServer == data.server.name)
+            {
+                setServer(data.server)
+                setActiveChannel(activeChannel)
+            }
+        })
+
         socket.on('update_chat', (data) =>{
 
             const updatedServer = JSON.parse(data.server)
@@ -124,6 +133,7 @@ function ServerView({activeServer, socket}){
 
 
       if (responseServerData.ok){
+        socket.emit("channel_added", activeServer)
         setServer(res)
         return
       }
