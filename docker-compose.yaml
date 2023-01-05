@@ -1,0 +1,60 @@
+version: '1.0'
+
+services:
+
+  mongo-ddb:
+
+    image: mongo:latest
+
+    container_name: mongo-ddb
+
+    hostname: mongo-hostname
+
+    ports:
+      - "27017:27017"
+
+    networks:
+      - network-proj
+
+  backend:
+
+    image: proj_734_back
+
+    container_name: proj_734_back
+
+    hostname: proj_734_back
+
+    ports:
+      - "5000:5000"
+
+    depends_on:
+      - mongo-ddb
+
+    networks:
+      - network-proj
+
+    links:
+      - mongo-ddb
+
+  frontend:
+
+    image: proj_734_front
+
+    container_name: proj_734_front
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - backend
+
+    networks:
+      - network-proj
+
+    links:
+      - backend
+
+networks:
+  network-proj:
+    driver: bridge
+

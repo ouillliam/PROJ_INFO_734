@@ -4,6 +4,7 @@ import json
 import db   
 import dictfier
 from flask_socketio import SocketIO, send, emit
+from flask_cors import CORS
 
 def server_to_json(server):
     query = [
@@ -52,6 +53,7 @@ def server_to_json(server):
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
     return app
 
 app = create_app()
@@ -288,4 +290,4 @@ def crud_server():
 
 
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, allow_unsafe_werkzeug=True)
