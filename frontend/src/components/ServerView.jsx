@@ -5,7 +5,7 @@ function ServerView({activeServer, socket}){
 
 
     const [server, setServer] = useState()
-    const [activeChannel, setActiveChannel] = useState()
+    const [activeChannel, setActiveChannel] = useState(null)
     const [newChannel, setNewChannel] = useState()
     const [newMember, setNewMember] = useState()
     const [newMessage, setNewMessage] = useState()
@@ -15,23 +15,51 @@ function ServerView({activeServer, socket}){
         if (activeServer === null ) return
         const serverData = await getServerData()
         setServer(serverData)
-        setActiveChannel(null)
         setNewChannel("")
     }
 
     useEffect( () => {
-        socket.on('user_joined_server', (data) => {
-            if ( activeServer == data.server ){
-                const lastChannel = activeChannel
-                fetchServerData()
-                setActiveChannel(lastChannel)
+        socket.off('new_message')
+
+        socket.on('new_message', (data) => {
+
+            if ( activeChannel && activeServer == data.server && activeChannel.name == data.channel ){
+
+                socket.emit("new_message_received", sessionStorage.getItem("user"), activeChannel.name, server.name)
             }
         })
+
+    }, [activeChannel])
+
+    useEffect( () => {
+        socket.on('user_joined_server', (data) => {
+
+            if ( activeServer == data.server.name ){
+
+                setServer(data.server)
+
+            }
+        })
+
+        socket.on('update_chat', (data) =>{
+
+            const updatedServer = JSON.parse(data.server)
+            setServer(updatedServer)
+            setActiveChannel(updatedServer.channels.find(channel => channel.name == data.channel))
+        })
+    
+
+        return () => {
+            socket.off('user_joined_server')
+            socket.off('new_message')
+            socket.off('update_chat')
+        }
+
     }, [])
 
     useEffect( () => {
         fetchServerData()
-
+        setActiveChannel(null)
 
     }, [activeServer])
 
@@ -151,8 +179,9 @@ function ServerView({activeServer, socket}){
       const res = await responseServerData.json();
 
       if (responseServerData.ok){
-        setServer(res)
-        setActiveChannel(res.channels.find(channel => channel.name == activeChannel.name))
+        // setServer(res)
+        // setActiveChannel(res.channels.find(channel => channel.name == activeChannel.name))
+        socket.emit("message_sent",  activeServer, activeChannel.name)
         return
       }
       else{
@@ -165,7 +194,11 @@ function ServerView({activeServer, socket}){
     const renderMessageItems = () => {
         return activeChannel && activeChannel.messages.map( (message) => {
             return (<li className='channel-message'>
-                {message.content}
+                <div>
+                    <span className='from'>{message.from_user.login}</span>
+                    <span className='date'>{message.sent_at}</span>
+                </div>
+                <p>{message.content}</p>
             </li>)
         })
     }
@@ -198,7 +231,7 @@ function ServerView({activeServer, socket}){
                 <ul>{renderChannelItems()}</ul>
             </div>
             <div className='channel-view'>
-                <ul>{renderMessageItems()}</ul>
+                <ul className='message-list'>{renderMessageItems()}</ul>
                 {renderChannelView()}
             </div>
                 

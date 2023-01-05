@@ -33,7 +33,9 @@ def server_to_json(server):
                                 {
                                     "messages" : [
                                         [
-                                            {"from_user" : dictfier.useobj(lambda obj : str(obj.from_user))},
+                                            {"from_user" : [
+                                                "login"
+                                            ]},
                                             "sent_at",
                                             "content"
                                         ]
@@ -114,12 +116,26 @@ def add_member(member, server):
     
     print("JESSAY D EMIT SERVER "+ server + " JOINED " + member )
     if conn:
-        socketio.emit("user_joined_server", {"server" : server, "username" : member}, to = server, skip_sid = conn )
+        socketio.emit("user_joined_server", {"server" : server_to_json(db.get_server(mongo, server)), "username" : member}, to = server, skip_sid = conn )
     else:
-        socketio.emit("user_joined_server", {"server" : server, "username" : member}, to = server)
+        socketio.emit("user_joined_server", {"server" : server_to_json(db.get_server(mongo, server)), "username" : member}, to = server)
         
+@socketio.on('message_sent')
+def handle_message_sent(server, channel):
+    print("NOUVEAU MESSAGE ===================")
+    socketio.emit("new_message", {"server" : server, "channel" : channel}, to = server)
 
-
+@socketio.on('new_message_received')
+def handle_new_message_received(login, channel, server):
+    for connection in connections:
+        username = ""
+        try:
+            username = socketio.server.get_session(connection)["username"]
+        except:
+            pass
+        
+        if username == login :
+            socketio.emit('update_chat', {'channel' : channel,'server' : json.dumps(server_to_json(db.get_server(mongo, server)))} ,to = connection)
 
 
 @app.route("/api/user", methods = ['POST'])

@@ -110,7 +110,7 @@ def update_server(mongo, server_name, channel, member, channel_to_update, new_me
         if new_message:
             message = Message(
                 **{
-                    'from_user' : user.id,
+                    'from_user' : user,
                     'content' : new_message
                 }
             )

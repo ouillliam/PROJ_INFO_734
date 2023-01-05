@@ -20,7 +20,7 @@ class UserRepository(AbstractRepository[User]):
         collection_name = 'users'
 
 class Message(BaseModel):
-    from_user: ObjectIdField
+    from_user: User
     sent_at: str = "{:%X %x}".format(datetime.datetime.now())
     content:str
 
