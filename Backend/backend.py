@@ -138,6 +138,13 @@ def handle_new_message_received(login, channel, server):
             socketio.emit('update_chat', {'channel' : channel,'server' : json.dumps(server_to_json(db.get_server(mongo, server)))} ,to = connection)
 
 
+@socketio.on('channel_added')
+def handle_new_channel(server_name):
+    server = db.get_server(mongo, server_name)
+    socketio.emit('new_channel', {"server" : server_to_json(server)}, to = server_name)
+
+
+
 @app.route("/api/user", methods = ['POST'])
 def api_user():
     data = request.get_json()
