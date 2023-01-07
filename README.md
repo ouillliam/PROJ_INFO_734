@@ -4,6 +4,10 @@ Projet réalisé seul. Le but était de rérpoduire un clonde de discord avec un
 ## ! Important !
 regarder la vidéo en guise de présentation/soutenance pour plus d'explications
 
+m'envoyer un mail si le lien ets plus dispo
+
+https://we.tl/t-wbbSqECaZr
+
 # Architecture
 
 - `fronted`
