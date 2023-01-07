@@ -28,22 +28,23 @@ function ServerView({activeServer, socket}){
         socket.off('new_message')
 
         socket.on('new_message', (data) => {
-
-            if ( activeChannel && activeServer == data.server && activeChannel.name == data.channel ){
+           
+            // if ( activeChannel && activeServer == data.server && activeChannel.name == data.channel ){
 
                 // Notifier le server qu'un nouveau message a été reçu. 
                 socket.emit("new_message_received", sessionStorage.getItem("user"), activeChannel.name, server.name)
-            }
+            // }
         })
 
     }, [activeChannel])
 
-
-    // Setup les autres listeners de la socket
     useEffect( () => {
+        socket.off('user_joined_server')
+        socket.off('new_channel')
 
-        // Pour refresh la view quand on user est ajouté à mon server ouvert
         socket.on('user_joined_server', (data) => {
+
+
 
             if ( activeServer == data.server.name ){
 
@@ -54,13 +55,21 @@ function ServerView({activeServer, socket}){
 
         // Pour refresh la view quand un channel est ajouté à mon server ouvert
         socket.on('new_channel', (data) => {
-            alert(activeServer + " " + data.server.name)
+
             if( activeServer == data.server.name)
             {
                 setServer(data.server)
                 setActiveChannel(activeChannel)
             }
         })
+
+
+    }, [activeServer])
+
+
+    // Setup les autres listeners de la socket
+    useEffect( () => {
+        // Pour refresh la view quand on user est ajouté à mon server ouvert
 
         // Pour refresh le chat
         socket.on('update_chat', (data) =>{
@@ -75,6 +84,7 @@ function ServerView({activeServer, socket}){
             socket.off('user_joined_server')
             socket.off('new_message')
             socket.off('update_chat')
+            socket.off('new_channel')
         }
 
     }, [])
