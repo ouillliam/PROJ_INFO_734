@@ -1,6 +1,8 @@
 # Projet FULLSTACK Discord
 Projet réalisé seul. Le but était de rérpoduire un clonde de discord avec un front REACT et une API Flask avec python en BACKEND, avec une database mongoDB.
 
+https://trello.com/b/VJNd6ont/proj-info-734
+
 ## ! Important !
 regarder la vidéo en guise de présentation/soutenance pour plus d'explications
 
