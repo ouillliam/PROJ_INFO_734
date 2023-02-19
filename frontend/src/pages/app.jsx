@@ -7,13 +7,20 @@ import ServerList from '../components/ServerList';
 import ServerView from '../components/ServerView';
 import io from 'socket.io-client';
 // import { SocketContext, socket } from '../context/socket';
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 
 // Initialisation socket 
 
 const socket = io("http://127.0.0.1:5000")
+createProxyMiddleware({
+      target: 'http://localhost:6000',
+      changeOrigin: true,
+    })
 
 function App() {
+
+  
 
 
     // Serveur à afficher

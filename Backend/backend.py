@@ -4,6 +4,7 @@ import json
 import db   
 import dictfier
 from flask_socketio import SocketIO, send, emit
+import redis
 
 
 # Pour convertir un objet Server en json
@@ -62,6 +63,9 @@ app = create_app()
 # Config la ddb
 mongo = db.config_db(app, "myDatabase")
 
+#Serveur redis
+r = redis.Redis()
+
 # Serveur socket
 socketio = SocketIO(app, cors_allowed_origins="*", logger = False)
 
@@ -77,6 +81,7 @@ def connect(sid, environ, auth):
 # Supprimer la socket qui se deconnecte de la liste
 @socketio.server.event
 def disconnect(sid):
+    r.delete(socketio.server.get_session(sid).get('username'))
     print("disconnected" , sid)
     connections.remove(sid)
     
@@ -85,13 +90,15 @@ def disconnect(sid):
 def register_user(sid, username):
     print("REGISTERING " + username)
     socketio.server.save_session(sid, {'username' : username})
+    r.set(username, 1)
     servers = db.get_servers_of_user(mongo, username)
     for server in servers:
         print(username + " se connecte a " + server.name)
         socketio.server.enter_room(sid, server.name)
-    print(f"{sid} {socketio.server.get_session(sid)}")
-    print("TOUTES LES ROOMS")
-    print(socketio.server.manager.rooms)
+    
+    # print(f"{sid} {socketio.server.get_session(sid)}")
+    # print("TOUTES LES ROOMS")
+    # print(socketio.server.manager.rooms)
     
 # Ajouter le nouveau membre à la room correspondant au serveur
 @socketio.on('add_member')
@@ -176,8 +183,9 @@ def api_user_login():
     data = request.get_json()
 
     user = db.find_user(mongo, data['username'], data['password'])
-
+    
     if user:
+        # r.set(user.login, 1)
         response = app.response_class(
                 response=json.dumps({'body' : user.login}),
                 status=200,
@@ -292,7 +300,26 @@ def crud_server():
                 return response
 
         
-
+@app.route("/api/get_user_redis", methods = ['GET'])
+def get_user():
+    if request.method == "GET" :
+        user = request.args.get('login')
+        if user:
+            res = r.get(user)
+            if res != None:
+                response = app.response_class(
+                                response=json.dumps({'body' : '1'}),
+                                status=200,
+                                mimetype='application/json'
+                            )
+            else :
+                response = app.response_class(
+                                response=json.dumps({'body' : '0'}),
+                                status=200,
+                                mimetype='application/json'
+                            )
+            return response
+    return
 
 if __name__ == '__main__':
     socketio.run(app)

@@ -70,7 +70,7 @@
 }
 
 .channel-list li::before{
-    content: '⚫️';
+    content: '📜';
     margin-right: 5px ;
 }
 
@@ -122,6 +122,16 @@
 
 .member-list .admin{
     font-weight: bold;
+}
+
+.member::before{
+    content: '⚫️';
+    margin-right: 5px ;
+}
+
+.member-list .connected::before{
+    content : '🔵';
+    margin-right: 5px;
 }
 
 .channel-list .servername{
